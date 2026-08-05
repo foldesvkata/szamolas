@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mássalhangzó-törvények Gyakorló App</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --primary-dark: #357ABD;
+            --success: #2ECC71;
+            --error: #E74C3C;
+            --bg: #F4F7F9;
+            --card-bg: #FFFFFF;
+            --text: #2C3E50;
+            --accent: #F39C12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #7F8C8D;
+            font-size: 14px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #ECF0F1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 20%;
+            background-color: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .quiz-card {
+            margin-bottom: 20px;
+        }
+
+        .question-box {
+            background-color: #EBF5FB;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .question-box h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .word-highlight {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #FFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 480px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-btn {
+            background-color: #FFF;
+            border: 2px solid #BDC3C7;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #F0F8FF;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-btn.correct {
+            background-color: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error) !important;
+            color: white !important;
+            border-color: var(--error) !important;
+        }
+
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background-color: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+
+        .feedback-box.wrong {
+            display: block;
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .next-btn, .restart-btn {
+            margin-top: 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: none;
+        }
+
+        .next-btn:hover, .restart-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .result-screen {
+            display: none;
+        }
+
+        .result-screen h2 {
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 20px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Mássalhangzó-törvények</h1>
+        <p>Gyakorló feladatsor 11 éveseknek</p>
+    </div>
+
+    <div class="progress-bar-container" id="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div id="quiz-screen">
+        <div class="question-box">
+            <h2 id="question-text">1. Feladat</h2>
+            <div class="word-highlight" id="word-target">színpad</div>
+            <p id="question-subtext">Melyik mássalhangzó-törvény figyelhető meg a szó kiejtésekor (szímpad)?</p>
+        </div>
+
+        <div class="options-grid" id="options-container">
+            <!-- Options dynamically added -->
+        </div>
+
+        <div class="feedback-box" id="feedback"></div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Következő feladat ➔</button>
+    </div>
+
+    <div class="result-screen" id="result-screen">
+        <h2>Szép volt! Elkészültél!</h2>
+        <p>A feladatsor végére értél. Íme az eredményed:</p>
+        <div class="score-display" id="final-score">5 / 5</div>
+        <p id="teacher-eval">Fantasztikus teljesítmény! Igazi nyelvész vagy!</p>
+        <button class="restart-btn" style="display: inline-block;" onclick="restartQuiz()">Újrajátszás 🔄</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            word: "színpad",
+            pronunciation: "szímpad",
+            question: "Melyik mássalhangzó-törvény érhető tetten a szó kiejtésekor?",
+            options: [
+                "Képzés helye szerinti hasonulás",
+                "Zöngésség szerinti hasonulás",
+                "Mássalhangzó-összeolvadás",
+                "Mássalhangzó-kiesés"
+            ],
+            correct: 0,
+            praise: "Nagyszerű! A 'n' hang képzés helye szerint hasonult a 'p' hanghoz (m-mé vált)!"
+        },
+        {
+            word: "vasgolyó",
+            pronunciation: "vazsgolyó",
+            question: "Milyen mássalhangzó-törvény alakítja a szó kiejtését?",
+            options: [
+                "Írásban jelölt teljes hasonulás",
+                "Zöngésség szerinti hasonulás",
+                "Mássalhangzó-megnyúlás",
+                "Mássalhangzó-összeolvadás"
+            ],
+            correct: 1,
+            praise: "Zseniális! A zöngés 'g' zöngéssé formálta a zöngétlen 's' hangot ('zs'-vé)!"
+        },
+        {
+            word: "látja",
+            pronunciation: "láttya",
+            question: "Mi történik a 't' és 'j' találkozásakor?",
+            options: [
+                "Zöngésség szerinti hasonulás",
+                "Mássalhangzó-kiesés",
+                "Mássalhangzó-összeolvadás",
+                "Képzés helye szerinti hasonulás"
+            ],
+            correct: 2,
+            praise: "Szuper! A 't' és 'j' találkozásából egy teljesen új hosszú hang ('tty') keletkezett!"
+        },
+        {
+            word: "mondtam",
+            pronunciation: "montam",
+            question: "Melyik jelenség figyelhető meg a szó kiejtésekor?",
+            options: [
+                "Mássalhangzó-kiesés",
+                "Mássalhangzó-összeolvadás",
+                "Írásban jelölt teljes hasonulás",
+                "Mássalhangzó-megnyúlás"
+            ],
+            correct: 0,
+            praise: "Tökéletes! A három egymás melletti mássalhangzó közül a középső 'd' kiesett!"
+        },
+        {
+            word: "egészség",
+            pronunciation: "egésség",
+            question: "Milyen szabály érvényesül a szó kiejtésekor?",
+            options: [
+                "Zöngésség szerinti hasonulás",
+                "Írásban jelöletlen teljes hasonulás",
+                "Képzés helye szerinti hasonulás",
+                "Mássalhangzó-kiesés"
+            ],
+            correct: 1,
+            praise: "Bravó! Az 'sz' hang teljesen magához hasonította az 's' hangot, de írásban nem jelöljük!"
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playSuccessSound() {
+        initAudio();
+        const now = audioCtx.currentTime;
+        
+        // Happy arpeggio melody (C5, E5, G5, C6)
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, index) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + index * 0.08);
+            
+            gain.gain.setValueAtTime(0.15, now + index * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(now + index * 0.08);
+            osc.stop(now + index * 0.08 + 0.3);
+        });
+    }
+
+    function playErrorSound() {
+        initAudio();
+        const now = audioCtx.currentTime;
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
+        
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.3);
+    }
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById("progress-bar").style.width = ((currentQuestion + 1) / questions.length * 100) + "%";
+        document.getElementById("question-text").innerText = (currentQuestion + 1) + ". Feladat";
+        document.getElementById("word-target").innerText = `${q.word} (kiejtve: ${q.pronunciation})`;
+        document.getElementById("question-subtext").innerText = q.question;
+
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = `${String.fromCharCode(65 + idx)}) ${opt}`;
+            btn.onclick = () => selectOption(idx);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById("feedback").style.display = "none";
+        document.getElementById("feedback").className = "feedback-box";
+        document.getElementById("next-btn").style.display = "none";
+    }
+
+    function selectOption(index) {
+        const q = questions[currentQuestion];
+        const buttons = document.querySelectorAll(".option-btn");
+        const feedback = document.getElementById("feedback");
+
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (index === q.correct) {
+            buttons[index].classList.add("correct");
+            feedback.innerText = "🌟 " + q.praise;
+            feedback.className = "feedback-box correct";
+            score++;
+            playSuccessSound();
+        } else {
+            buttons[index].classList.add("wrong");
+            buttons[q.correct].classList.add("correct");
+            feedback.innerText = "Sajnos nem ez a helyes. 💡 Sebaj, a helyes válasz: " + q.options[q.correct];
+            feedback.className = "feedback-box wrong";
+            playErrorSound();
+        }
+
+        if (currentQuestion < questions.length - 1) {
+            document.getElementById("next-btn").style.display = "inline-block";
+        } else {
+            setTimeout(showResults, 1800);
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        loadQuestion();
+    }
+
+    function showResults() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("progress-container").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").innerText = `${score} / ${questions.length}`;
+
+        const evalText = document.getElementById("teacher-eval");
+        if (score === 5) {
+            evalText.innerText = "🏆 Parádés! Zseniálisan ismered az összes mássalhangzó-törvényt!";
+        } else if (score >= 3) {
+            evalText.innerText = "👏 Szép munka! Jó úton jársz, egy kis gyakorlással még jobb leszel!";
+        } else {
+            evalText.innerText = "💪 Ne csüggedj! Nézd át újra a szabályokat, és futfuss neki még egyszer!";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        document.getElementById("quiz-screen").style.display = "block";
+        document.getElementById("progress-container").style.display = "block";
+        document.getElementById("result-screen").style.display = "none";
+        loadQuestion();
+    }
+
+    // Start quiz
+    loadQuestion();
+</script>
+</body>
+</html>
